@@ -1,12 +1,740 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人网站</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>像素作品集 | PIXEL.DEV</title>
+
+<!-- 像素字体（Google Fonts，可选）。加载失败会自动回退到等宽字体，不影响使用 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+/* ==================================================================
+   0. 全局变量 —— 想换配色 / 字体，只改这里就够了
+   ================================================================== */
+:root{
+  --bg:       #12121c;   /* 页面背景色 */
+  --panel:    #1c1c2b;   /* 卡片背景色 */
+  --panel-2:  #232338;   /* 次级背景（标签、进度条底槽） */
+  --line:     #34344d;   /* 描边颜色 */
+  --ink:      #05050a;   /* 硬阴影色，像素风的灵魂，不要加模糊 */
+  --text:     #e9e9f2;   /* 正文文字色 */
+  --muted:    #8f8fa8;   /* 次要文字色 */
+  --accent:   #ffd93d;   /* 主强调色（黄） */
+  --accent-2: #4ade80;   /* 次强调色（绿） */
+  --accent-3: #ff6b9d;   /* 点缀色（粉） */
+
+  --font-pixel:'Press Start 2P','Courier New',monospace;               /* 英文像素字体 */
+  --font-body: ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC','Microsoft YaHei',monospace;
+}
+
+/* ==================================================================
+   1. 基础重置与页面背景
+   ================================================================== */
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+  margin:0;
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.8;
+  color:var(--text);
+  background-color:var(--bg);
+  /* 用两层渐变画出淡淡的像素网格背景 */
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size:24px 24px;
+}
+
+/* 通用容器：控制整体宽度和左右留白 */
+.wrap{
+  max-width:960px;
+  margin:0 auto;
+  padding-left:20px;
+  padding-right:20px;
+}
+
+/* 锚点跳转时留出顶部导航的高度 */
+section[id]{ scroll-margin-top:80px; }
+
+/* ==================================================================
+   2. 顶部导航
+   ================================================================== */
+.nav{
+  position:sticky; top:0; z-index:100;
+  background:rgba(18,18,28,.92);
+  backdrop-filter:blur(4px);
+  border-bottom:3px solid var(--line);
+}
+.nav__inner{
+  display:flex; align-items:center; justify-content:space-between;
+  height:56px;
+}
+.nav__logo{
+  font-family:var(--font-pixel);
+  font-size:12px;
+  letter-spacing:1px;
+  color:var(--accent);
+  text-decoration:none;
+}
+.nav__links{ display:flex; gap:20px; }
+.nav__links a{
+  font-size:13px;
+  letter-spacing:1px;
+  color:var(--muted);
+  text-decoration:none;
+  padding-bottom:2px;
+  border-bottom:2px solid transparent;   /* hover 时出现的像素下划线 */
+  transition:color .15s, border-color .15s;
+}
+.nav__links a:hover{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+
+/* ==================================================================
+   3. 首屏 Hero 区
+   ================================================================== */
+.hero{
+  display:flex;
+  align-items:center;
+  gap:44px;
+  padding-top:64px;
+  padding-bottom:72px;
+}
+
+/* 像素头像画布：canvas 只有 12×12 像素，靠 CSS 放大 + pixelated 保持硬边 */
+.hero__avatar{ flex-shrink:0; }
+.hero__avatar canvas{
+  display:block;
+  width:144px; height:144px;
+  image-rendering:pixelated;
+  background:var(--panel);
+  border:3px solid var(--line);
+  box-shadow:6px 6px 0 var(--ink);
+}
+
+.hero__hello{
+  margin:0 0 10px;
+  font-family:var(--font-pixel);
+  font-size:10px;
+  letter-spacing:1px;
+  color:var(--accent-2);
+}
+/* 闪烁的光标 */
+.cursor{
+  display:inline-block;
+  color:var(--accent);
+  animation:blink 1s steps(1) infinite;
+}
+@keyframes blink{ 0%,50%{opacity:1} 50.01%,100%{opacity:0} }
+
+.hero__name{
+  margin:0 0 12px;
+  font-size:30px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+.hero__name em{
+  font-style:normal;
+  color:var(--accent);
+  border-bottom:4px solid var(--accent);   /* 名字下的像素粗线 */
+}
+.hero__desc{
+  margin:0;
+  font-size:14px;
+  color:var(--muted);
+}
+.hero__actions{
+  display:flex; flex-wrap:wrap; gap:14px;
+  margin-top:26px;
+}
+
+/* ==================================================================
+   4. 像素按钮
+   ================================================================== */
+.btn{
+  display:inline-block;
+  padding:10px 18px;
+  font-family:var(--font-body);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-decoration:none;
+  color:var(--ink);
+  background:var(--accent);
+  border:3px solid var(--ink);
+  box-shadow:4px 4px 0 var(--ink);        /* 硬阴影，制造“厚方块”感 */
+  cursor:pointer;
+  transition:transform .06s steps(2), box-shadow .06s steps(2),
+             background .15s, color .15s, border-color .15s;
+}
+.btn:hover{ background:#ffe680; }
+.btn:active{                              /* 按下时下沉，阴影消失 */
+  transform:translate(4px,4px);
+  box-shadow:0 0 0 var(--ink);
+}
+
+/* 幽灵按钮（描边款） */
+.btn--ghost{
+  color:var(--text);
+  background:transparent;
+  border-color:var(--line);
+}
+.btn--ghost:hover{
+  color:var(--accent);
+  background:var(--panel-2);
+  border-color:var(--accent);
+}
+
+/* 卡片里的小号按钮 */
+.btn--sm{
+  padding:8px 14px;
+  font-size:12px;
+  align-self:flex-start;
+}
+
+/* ==================================================================
+   5. 区块标题
+   ================================================================== */
+.section{ padding-top:56px; padding-bottom:56px; }
+
+.section__title{
+  display:flex; align-items:center; gap:12px;
+  margin:0 0 8px;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+/* 标题前的编号方块 */
+.section__num{
+  font-family:var(--font-pixel);
+  font-size:11px;
+  padding:6px 8px;
+  color:var(--ink);
+  background:var(--accent-2);
+  box-shadow:3px 3px 0 var(--ink);
+}
+.section__sub{
+  margin:0 0 30px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* ==================================================================
+   6. 作品卡片网格
+   ================================================================== */
+.works{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(258px,1fr));
+  gap:22px;
+}
+
+.card{
+  display:flex;
+  flex-direction:column;
+  background:var(--panel);
+  border:3px solid var(--line);
+  box-shadow:5px 5px 0 var(--ink);
+  transition:transform .12s steps(3), box-shadow .12s steps(3), border-color .12s;
+}
+.card:hover{
+  transform:translate(-3px,-3px);         /* 悬停时向左上“浮起” */
+  box-shadow:8px 8px 0 var(--ink);
+  border-color:var(--accent);
+}
+
+/* 缩略图：棋盘格底纹 + 居中大字符 */
+.card__thumb{
+  position:relative;
+  aspect-ratio:16/9;
+  display:grid;
+  place-items:center;
+  border-bottom:3px solid var(--line);
+  overflow:hidden;
+  background-color:var(--c1,#222);        /* --c1/--c2 由 JS 从数据里注入 */
+  background-image:
+    linear-gradient(45deg, var(--c2,#333) 25%, transparent 25%, transparent 75%, var(--c2,#333) 75%),
+    linear-gradient(45deg, var(--c2,#333) 25%, transparent 25%, transparent 75%, var(--c2,#333) 75%);
+  background-size:16px 16px;
+  background-position:0 0, 8px 8px;
+}
+.card__icon{
+  font-size:42px;
+  line-height:1;
+  filter:drop-shadow(3px 3px 0 rgba(0,0,0,.45));
+}
+
+.card__body{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  flex:1;
+  padding:16px;
+}
+.card__title{
+  margin:0;
+  font-size:16px;
+  letter-spacing:.5px;
+}
+.card__desc{
+  flex:1;
+  margin:0;
+  font-size:13px;
+  line-height:1.7;
+  color:var(--muted);
+}
+.card__tags{
+  display:flex; flex-wrap:wrap; gap:6px;
+  margin:0; padding:0;
+  list-style:none;
+}
+.card__tags li{
+  font-size:11px;
+  padding:3px 8px;
+  color:var(--accent-2);
+  background:var(--panel-2);
+  border:2px solid var(--line);
+}
+
+/* ==================================================================
+   7. 关于我
+   ================================================================== */
+.about{
+  display:grid;
+  grid-template-columns:1.15fr 1fr;
+  gap:40px;
+  align-items:start;
+}
+.about__text p{
+  margin:0 0 14px;
+  font-size:14px;
+  color:var(--muted);
+}
+.about__text strong{ color:var(--accent); }
+
+/* 信息小列表 */
+.info{
+  margin:18px 0 0;
+  padding:0;
+  list-style:none;
+  font-size:13px;
+}
+.info li{
+  display:flex;
+  gap:12px;
+  padding:7px 0;
+  border-bottom:1px dashed var(--line);
+}
+.info span{
+  flex-shrink:0;
+  width:56px;
+  color:var(--muted);
+}
+.dot{ color:var(--accent-2); }
+
+/* 技能条 */
+.skill{ margin-bottom:18px; }
+.skill__head{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  margin-bottom:7px;
+  font-size:13px;
+}
+.skill__head b{
+  font-family:var(--font-pixel);
+  font-size:9px;
+  font-weight:400;
+  color:var(--accent-2);
+}
+.skill__bar{
+  height:14px;
+  padding:2px;
+  background:var(--panel-2);
+  border:2px solid var(--line);
+}
+.skill__fill{
+  height:100%;
+  background-color:var(--accent-2);
+  /* 用重复渐变把进度条切成一段一段，做出像素刻度感 */
+  background-image:repeating-linear-gradient(90deg, transparent 0 6px, rgba(0,0,0,.35) 6px 8px);
+  transition:width .6s steps(8);
+}
+
+/* ==================================================================
+   8. 联系区 & 页脚
+   ================================================================== */
+.contacts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:22px;
+}
+
+.footer{
+  margin-top:40px;
+  padding:28px 20px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  border-top:3px solid var(--line);
+}
+
+/* ==================================================================
+   9. 滚动进场动画（配合 JS 的 IntersectionObserver）
+   ================================================================== */
+.reveal{
+  opacity:0;
+  transform:translateY(18px);
+  /* steps() 让动画有“跳帧”的像素感 */
+  transition:opacity .35s steps(5), transform .35s steps(5);
+}
+.reveal.is-visible{
+  opacity:1;
+  transform:none;
+}
+
+/* ==================================================================
+   10. 响应式：小屏幕适配
+   ================================================================== */
+@media (max-width:680px){
+  .hero{
+    flex-direction:column;
+    text-align:center;
+    gap:28px;
+    padding-top:40px;
+    padding-bottom:48px;
+  }
+  .hero__actions{ justify-content:center; }
+  .hero__name{ font-size:23px; }
+  .about{ grid-template-columns:1fr; gap:28px; }
+  .section__title{ font-size:18px; }
+  .contacts{ justify-content:center; }
+}
+</style>
 </head>
+
 <body>
-    <h1>Hello, World!</h1>
-    <p>这是我的第一个网站。</p>
+
+<!-- ================= 顶部导航 ================= -->
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a href="#top" class="nav__logo">▚ PIXEL.DEV</a>
+    <nav class="nav__links">
+      <a href="#works">作品</a>
+      <a href="#about">关于</a>
+      <a href="#contact">联系</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= 首屏 ================= -->
+  <section class="wrap hero">
+    <div class="hero__avatar">
+      <!-- 像素头像由 JS 绘制，图案在脚本的 AVATAR_PIXELS 里改 -->
+      <canvas id="avatar" aria-label="像素头像"></canvas>
+    </div>
+
+    <div class="hero__text">
+      <p class="hero__hello">&gt; HELLO WORLD<span class="cursor">_</span></p>
+      <h1 class="hero__name">我是 <em>阿像素</em></h1>
+      <p class="hero__desc">
+        前端开发 / 独立游戏爱好者<br>
+        用代码和像素，造一些小而有趣的东西。
+      </p>
+      <div class="hero__actions">
+        <a href="#works" class="btn">查看作品</a>
+        <a href="#contact" class="btn btn--ghost">联系我</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 作品展示 ================= -->
+  <section id="works" class="wrap section">
+    <h2 class="section__title"><span class="section__num">01</span>作品展示</h2>
+    <p class="section__sub">// 一些我自己做的小东西，卡片由 JS 自动生成</p>
+    <!-- 作品卡片会被插入到这个容器里 -->
+    <div class="works" id="works-grid"></div>
+  </section>
+
+  <!-- ================= 关于我 ================= -->
+  <section id="about" class="wrap section">
+    <h2 class="section__title"><span class="section__num">02</span>关于我</h2>
+    <p class="section__sub">// 一点点自我介绍</p>
+
+    <div class="about">
+      <div class="about__text">
+        <p>
+          你好，我是一名喜欢 <strong>复古像素美学</strong> 的开发者。
+          平时主要写前端，也喜欢用 Canvas 和 WebGL 做一些小游戏和交互玩具。
+        </p>
+        <p>
+          我相信「限制催生创意」—— 就像 8-bit 时代那样，
+          在有限的色板和分辨率里，反而能做出最有辨识度的东西。
+        </p>
+
+        <!-- 改这里可以更新你的个人信息 -->
+        <ul class="info">
+          <li><span>昵称</span>阿像素</li>
+          <li><span>坐标</span>广州 · 中国</li>
+          <li><span>状态</span><b class="dot">●</b>&nbsp;可接外包 / 合作</li>
+        </ul>
+      </div>
+
+      <!-- 技能条由 JS 生成 -->
+      <div class="about__skills" id="skills"></div>
+    </div>
+  </section>
+
+  <!-- ================= 联系方式 ================= -->
+  <section id="contact" class="wrap section">
+    <h2 class="section__title"><span class="section__num">03</span>联系我</h2>
+    <p class="section__sub">// 有项目想聊？随时找我</p>
+
+    <p style="font-size:14px;color:var(--muted);margin:0;">
+      不管是合作、外包，还是单纯想聊聊像素和游戏，都欢迎来信。
+    </p>
+
+    <!-- 改 href 就能换成你自己的联系方式 -->
+    <div class="contacts">
+      <a class="btn" href="mailto:hello@example.com">✉ hello@example.com</a>
+      <a class="btn btn--ghost" href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn--ghost" href="https://twitter.com/" target="_blank" rel="noopener">Twitter</a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= 页脚 ================= -->
+<footer class="footer">
+  <p style="margin:0;">© 2025 阿像素 · Made with ▓▒░ pixels and code</p>
+</footer>
+
+<script>
+/* ==================================================================
+   A. 像素头像图案
+   ------------------------------------------------------------------
+   12×12 的字符画，每个字符对应下面调色板里的一个颜色：
+     1 = 头发   2 = 皮肤   3 = 眼睛/嘴   4 = 衣服   . = 透明
+   想换成自己的头像，直接改这些字符就行（每行必须正好 12 个字符）
+   ================================================================== */
+const AVATAR_PIXELS = [
+  '....1111....',
+  '..11111111..',
+  '.1111111111.',
+  '.1112222111.',
+  '.1122222211.',
+  '.1223223221.',
+  '.1222222221.',
+  '.1223333221.',
+  '..12222221..',
+  '..44444444..',
+  '.4444444444.',
+  '444444444444',
+];
+
+const AVATAR_COLORS = {
+  '1': '#2b2440',   // 头发
+  '2': '#f3c9a3',   // 皮肤
+  '3': '#12121c',   // 眼睛 / 嘴
+  '4': '#4ade80',   // 衣服
+};
+
+/* 把字符画绘制到 canvas 上 */
+function drawAvatar(){
+  const cv = document.getElementById('avatar');
+  if (!cv) return;
+
+  const ctx  = cv.getContext('2d');
+  const size = AVATAR_PIXELS.length;   // 12
+
+  cv.width  = size;                    // 画布只有 12×12 像素
+  cv.height = size;
+  ctx.clearRect(0, 0, size, size);
+
+  AVATAR_PIXELS.forEach((row, y) => {
+    [...row].forEach((ch, x) => {
+      const color = AVATAR_COLORS[ch];
+      if (!color) return;              // '.' 表示透明，跳过
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);        // 一个字符 = 一个像素
+    });
+  });
+}
+
+/* ==================================================================
+   B. 作品数据
+   ------------------------------------------------------------------
+   想增删作品，改这个数组就行。字段说明：
+     title  作品名称
+     desc   一句话描述
+     tags   标签数组（显示在卡片底部）
+     icon   缩略图中央的字符 / emoji
+     c1     缩略图底色
+     c2     缩略图棋盘格颜色（建议比 c1 稍亮一点）
+     link   点击“查看项目”跳转的地址
+   ================================================================== */
+const WORKS = [
+  {
+    title: '像素农场',
+    desc:  '用 Canvas 写的迷你农场经营游戏，包含种植、收获和昼夜天气系统。',
+    tags:  ['Canvas', 'JavaScript', '游戏'],
+    icon:  '🌱',
+    c1:    '#1d3326',
+    c2:    '#28472f',
+    link:  '#'
+  },
+  {
+    title: 'Retro UI Kit',
+    desc:  '一套开源的像素风 UI 组件库，按钮、面板、进度条都自带硬阴影。',
+    tags:  ['CSS', '组件库', '开源'],
+    icon:  '🎛️',
+    c1:    '#2b2340',
+    c2:    '#382c52',
+    link:  '#'
+  },
+  {
+    title: '星图生成器',
+    desc:  '输入一段文字，自动生成一张 8-bit 风格的星图海报，可导出 PNG。',
+    tags:  ['Canvas', '工具', '设计'],
+    icon:  '✨',
+    c1:    '#1b2a3a',
+    c2:    '#254157',
+    link:  '#'
+  },
+  {
+    title: '8-Bit 音乐盒',
+    desc:  '基于 Web Audio API 的方波合成器，浏览器里就能编一段芯片音乐。',
+    tags:  ['Web Audio', '音乐', '实验'],
+    icon:  '🎵',
+    c1:    '#3a2230',
+    c2:    '#4d2b40',
+    link:  '#'
+  },
+  {
+    title: '打字冒险',
+    desc:  '把背单词做成了横版闯关游戏，打对单词角色才会前进。',
+    tags:  ['Vue', '游戏化', '教育'],
+    icon:  '⌨️',
+    c1:    '#332e1c',
+    c2:    '#453f27',
+    link:  '#'
+  },
+  {
+    title: '配色生成器',
+    desc:  '一键生成 8-bit 复古调色板，支持导出 CSS 变量，随手就能用。',
+    tags:  ['React', '工具', '配色'],
+    icon:  '🎨',
+    c1:    '#1c3339',
+    c2:    '#25464f',
+    link:  '#'
+  }
+];
+
+/* ==================================================================
+   C. 技能数据
+   ------------------------------------------------------------------
+   name = 技能名，level = 熟练度百分比（0~100）
+   ================================================================== */
+const SKILLS = [
+  { name: 'JavaScript / TypeScript', level: 90 },
+  { name: 'HTML / CSS',              level: 95 },
+  { name: 'Vue / React',             level: 80 },
+  { name: 'Canvas / WebGL',          level: 70 },
+  { name: '像素美术',                level: 65 },
+];
+
+/* ==================================================================
+   D. 渲染作品卡片
+   ================================================================== */
+function renderWorks(){
+  const grid = document.getElementById('works-grid');
+  if (!grid) return;
+
+  grid.innerHTML = WORKS.map((w, i) => `
+    <article class="card reveal" style="transition-delay:${i * 70}ms">
+      <!-- 缩略图：--c1 / --c2 通过内联样式传给 CSS -->
+      <div class="card__thumb" style="--c1:${w.c1};--c2:${w.c2}">
+        <span class="card__icon">${w.icon}</span>
+      </div>
+
+      <div class="card__body">
+        <h3 class="card__title">${w.title}</h3>
+        <p class="card__desc">${w.desc}</p>
+
+        <ul class="card__tags">
+          ${w.tags.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+
+        <a class="btn btn--sm" href="${w.link}">查看项目 →</a>
+      </div>
+    </article>
+  `).join('');
+}
+
+/* ==================================================================
+   E. 渲染技能条
+   ================================================================== */
+function renderSkills(){
+  const box = document.getElementById('skills');
+  if (!box) return;
+
+  box.innerHTML = SKILLS.map(s => `
+    <div class="skill">
+      <div class="skill__head">
+        <span>${s.name}</span>
+        <b>${s.level}%</b>
+      </div>
+      <div class="skill__bar">
+        <!-- 宽度就是熟练度，改上面的数字即可 -->
+        <div class="skill__fill" style="width:${s.level}%"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ==================================================================
+   F. 滚动进场动画
+   ------------------------------------------------------------------
+   元素进入视口时加上 .is-visible，触发 CSS 过渡
+   ================================================================== */
+function initReveal(){
+  const items = document.querySelectorAll('.reveal');
+
+  // 浏览器不支持就直接全部显示（保证内容不会消失）
+  if (!('IntersectionObserver' in window)) {
+    items.forEach(el => el.classList.add('is-visible'));
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);   // 只播一次
+      }
+    });
+  }, { threshold: 0.12 });
+
+  items.forEach(el => observer.observe(el));
+}
+
+/* ==================================================================
+   G. 启动
+   ================================================================== */
+drawAvatar();      // 画头像
+renderWorks();     // 生成作品卡片
+renderSkills();    // 生成技能条
+initReveal();      // 启动滚动动画（必须放在渲染之后）
+</script>
+
 </body>
 </html>
